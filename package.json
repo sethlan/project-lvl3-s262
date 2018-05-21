@@ -14,7 +14,7 @@
     "dist"
   ],
   "bin": {
-    "gendiff": "dist/bin/page-loader.js"
+    "gendiff": "dist/bin/pageloader.js"
   },
   "devDependencies": {
     "babel-cli": "*",
