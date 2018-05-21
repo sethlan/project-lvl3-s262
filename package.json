@@ -1,0 +1,50 @@
+{
+  "name": "page-loader-sethlans",
+  "version": "0.0.1",
+  "description": "download page",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest",
+    "babel-node": "babel-node",
+    "build": "NODE_ENV=production babel src --out-dir dist --source-maps inline",
+    "prepublishOnly": "npm run build",
+    "eslint": "eslint"
+  },
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "gendiff": "dist/bin/page-loader.js"
+  },
+  "devDependencies": {
+    "babel-cli": "*",
+    "babel-core": "*",
+    "babel-preset-env": "*",
+    "babel-preset-stage-0": "*",
+    "babel-jest": "*",
+    "eslint": "*",
+    "eslint-config-airbnb-base": "*",
+    "eslint-plugin-import": "*",
+    "eslint-plugin-jest": "*",
+    "babel-eslint": "*",
+    "jest": "*",
+    "jest-cli": "*",
+    "listr": "*",
+    "nock": "*"
+  },
+  "dependencies": {
+    "commander": "*",
+    "axios": "*",
+    "mz": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sethlan/project-lvl3-s202.git"
+  },
+  "author": "sethlans",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sethlan/project-lvl3-s202/issues"
+  },
+  "homepage": "https://github.com/sethlan/project-lvl3-s202#readme"
+}
