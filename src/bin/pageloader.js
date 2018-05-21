@@ -6,5 +6,6 @@ import pageload from '..';
 program
   .version(version)
   .usage('[options] <url> <whereToSafe>')
-  .arguments('<url> <path>')
+  .arguments('<path> <url>')
   .parse(process.argv);
+console.dir(program);
