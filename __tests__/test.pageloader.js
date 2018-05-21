@@ -1,7 +1,7 @@
-import pageload from '../src/';
 import nock from 'nock';
+import pageload from '../src/';
 
-const host = 'https://ru.hexlet.io';
+const host = 'http://ru.hexlet.io';
 const answer = 'done';
 nock(host)
   .get('/')
@@ -9,4 +9,4 @@ nock(host)
 test('work for small chunk', () => {
   expect.assertions(1);
   return expect(pageload(host)).resolves.toBe(answer);
-} )
+});
