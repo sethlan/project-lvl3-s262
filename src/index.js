@@ -1,11 +1,13 @@
 import axios from 'axios';
 import httpAdapter from 'axios/lib/adapters/http';
+import url from 'url';
 // import http from 'http';
 
-export default url => new Promise((resolve, reject) => {
-  axios.defaults.host = url;
+export default addr => new Promise((resolve, reject) => {
+  const { pathname, hostname } = url.parse(addr);
+  axios.defaults.host = hostname;
   axios.defaults.adapter = httpAdapter;
-  axios.get('/')
+  axios.get(pathname)
     .then((response) => {
       resolve(response.data);
     })
