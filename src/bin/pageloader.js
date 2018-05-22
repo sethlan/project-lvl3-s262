@@ -1,6 +1,10 @@
-import version from '../../package.json';
+#!/usr/bin/env node
+
 import program from 'commander';
-import mz from 'mz';
+import fs from 'mz/fs';
+import url from 'url';
+import path from 'path';
+import version from '../../package.json';
 import pageload from '..';
 
 program
@@ -8,4 +12,11 @@ program
   .usage('[options] <url> <whereToSafe>')
   .arguments('<path> <url>')
   .parse(process.argv);
-console.dir(program);
+pageload(program.url)
+  .then((data) => {
+    const { hostname, pathname } = url.parse(program.url);
+    const filename = `${hostname.replace(/\//g, '-')}-${pathname.replace(/\//g, '-')}.html`;
+    const pathForSave = path.resolve(program.path, filename);
+    return fs.writeFile(pathForSave, data);
+  })
+  .catch(error => console.log(error));
