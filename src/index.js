@@ -1,34 +1,24 @@
 import axios from 'axios';
-import httpAdapter from 'axios/lib/adapters/http';
+import fs from 'mz/fs';
 import url from 'url';
-// import http from 'http';
+import path from 'path';
+import httpAdapter from 'axios/lib/adapters/http';
 
-export default addr => new Promise((resolve, reject) => {
-  const { pathname, hostname } = url.parse(addr);
-  axios.defaults.host = hostname;
+const namingFile = (addr) => {
+  const { hostname, pathname } = url.parse(addr);
+  const normHost = hostname.replace(/\./g, '-');
+  const normPath = pathname.replace(/\//g, (str, offset, s) =>
+    (offset === s.length - 1 ? '' : '-'));
+  return `${normHost}${normPath}.html`;
+};
+export default (addr, pathDir) => new Promise((resolve, reject) => {
   axios.defaults.adapter = httpAdapter;
-  console.log(pathname, hostname);
-  axios.get(pathname)
-    .then((response) => {
-      resolve(response.data);
+  axios.get(addr)
+    .then((data) => {
+      const filename = namingFile(addr);
+      const pathForSave = path.resolve(pathDir, filename);
+      return fs.writeFile(pathForSave, data);
     })
-    .catch((error) => {
-      // console.log(error);
-      reject(error);
-    });
-  // http.get(url, (res) => {
-  //   res.setEncoding('utf8');
-  //   let rawData = '';
-  //   res.on('data', (chunk) => { rawData += chunk; });
-  //   res.on('end', () => {
-  //     try {
-  //       const data = JSON.parse(rawData);
-  //       resolve(data);
-  //     } catch (e) {
-  //       reject(e.message);
-  //     }
-  //   });
-  // }).on('error', (e) => {
-  //   reject(e.message);
-  // });
+    .then(res => resolve(res))
+    .catch(error => reject(error));
 });
