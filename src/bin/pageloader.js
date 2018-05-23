@@ -17,4 +17,5 @@ program
   })
   .parse(process.argv);
 pageload(addr, pathDir)
+  .then(name => console.log(`Save in ${name}`))
   .catch(err => console.log(err));

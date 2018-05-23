@@ -16,7 +16,7 @@ export default (addr, pathDir) => new Promise((resolve, reject) => {
   const filename = namingFile(addr);
   const pathForSave = path.resolve(pathDir, filename);
   axios.get(addr)
-    .then(data => fs.writeFile(pathForSave, data))
+    .then(res => fs.writeFile(pathForSave, res.data))
     .then(() => resolve(pathForSave))
     .catch(error => reject(error));
 });
