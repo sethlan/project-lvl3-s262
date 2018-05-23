@@ -2,6 +2,8 @@
 env:
   global: 625009ae3209eeb8c3f1dfd997ff7bfef0e767e7c153c6130f4913cdebd2366d
 language: node_js
+node_js:
+  - stable
 before_script:
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
   - chmod +x ./cc-test-reporter
