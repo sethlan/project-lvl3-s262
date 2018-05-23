@@ -7,6 +7,7 @@ export default addr => new Promise((resolve, reject) => {
   const { pathname, hostname } = url.parse(addr);
   axios.defaults.host = hostname;
   axios.defaults.adapter = httpAdapter;
+  console.log(pathname, hostname);
   axios.get(pathname)
     .then((response) => {
       resolve(response.data);
