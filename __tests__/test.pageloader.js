@@ -1,25 +1,21 @@
+import os from 'os';
 import nock from 'nock';
+import fs from 'mz/fs';
+import path from 'path';
 import pageload from '../src/';
 
-const answer = { id: 'done' };
-
-const host2 = 'http://ru.hexlet.io';
-const path2 = '/';
-nock(host2)
-  .get(path2)
+const answer = 'test';
+const host = 'http://www.example.com';
+const pathName = '/';
+const folderForTest = path.join(os.tmpdir(), 'pageloader');
+nock(host)
+  .get(pathName)
   .reply(200, answer);
-test('test for http://ru.hexlet.io', () => {
+test('test for http://localhost', () => {
   expect.assertions(1);
-  return pageload(host2 + path2)
-    .then(data => expect(data).toEqual(answer));
+  return fs.mkdtemp(folderForTest)
+    .then(folder => pageload(host + pathName, folder))
+    .then(pathToFile => fs.readFile(pathToFile, 'utf8'))
+    .then(data => expect(data).toBe(answer))
+    .catch(err => console.log(err));
 });
-// const host = 'http://localhost';
-// const path = '/';
-// nock(host)
-//   .get(path)
-//   .reply(200, answer);
-// test('test for http://localhost', () => {
-//   expect.assertions(1);
-//   return pageload(host + path)
-//     .then(data => expect(data).toEqual(answer));
-// });
