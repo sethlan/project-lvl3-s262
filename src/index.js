@@ -13,12 +13,10 @@ const namingFile = (addr) => {
 };
 export default (addr, pathDir) => new Promise((resolve, reject) => {
   axios.defaults.adapter = httpAdapter;
+  const filename = namingFile(addr);
+  const pathForSave = path.resolve(pathDir, filename);
   axios.get(addr)
-    .then((data) => {
-      const filename = namingFile(addr);
-      const pathForSave = path.resolve(pathDir, filename);
-      return fs.writeFile(pathForSave, data);
-    })
-    .then(res => resolve(res))
+    .then(data => fs.writeFile(pathForSave, data))
+    .then(() => resolve(pathForSave))
     .catch(error => reject(error));
 });
