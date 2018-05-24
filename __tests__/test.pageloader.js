@@ -4,18 +4,14 @@ import fs from 'mz/fs';
 import path from 'path';
 import pageload from '../src/';
 
-const answer = 'test';
+const dataForSave = 'test';
 const host = 'http://www.example.com';
 const pathName = '/';
 const folderForTest = path.join(os.tmpdir(), 'pageloader');
-nock(host)
-  .get(pathName)
-  .reply(200, answer);
-test('test for http://localhost', () => {
-  expect.assertions(1);
-  return fs.mkdtemp(folderForTest)
-    .then(folder => pageload(host + pathName, folder))
-    .then(pathToFile => fs.readFile(pathToFile, 'utf8'))
-    .then(data => expect(data).toBe(answer))
-    .catch(err => console.log(err));
+test('test for http://localhost', async () => {
+  nock(host).get(pathName).reply(200, dataForSave);
+  const folder = await fs.mkdtemp(folderForTest);
+  const pathToFile = await pageload(host + pathName, folder);
+  const dataFromFunc = await fs.readFile(pathToFile, 'utf8');
+  return expect(dataFromFunc).toBe(dataForSave);
 });
