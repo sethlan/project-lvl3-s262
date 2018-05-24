@@ -11,12 +11,11 @@ const namingFile = (addr) => {
     (offset === s.length - 1 ? '' : '-'));
   return `${normHost}${normPath}.html`;
 };
-export default (addr, pathDir) => new Promise((resolve, reject) => {
+export default (addr, pathDir) => {
   axios.defaults.adapter = httpAdapter;
   const filename = namingFile(addr);
   const pathForSave = path.resolve(pathDir, filename);
-  axios.get(addr)
+  return axios.get(addr)
     .then(res => fs.writeFile(pathForSave, res.data))
-    .then(() => resolve(pathForSave))
-    .catch(error => reject(error));
-});
+    .then(() => pathForSave);
+};
