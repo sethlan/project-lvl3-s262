@@ -1,6 +1,6 @@
 {
   "name": "pageloader-sethlans",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "download page",
   "main": "src/index.js",
   "scripts": {
@@ -15,7 +15,7 @@
     "dist"
   ],
   "bin": {
-    "page-loader": "dist/bin/pageloader.js"
+    "page-loader": "dist/bin/page-loader.js"
   },
   "devDependencies": {
     "babel-cli": "*",
