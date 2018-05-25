@@ -5,18 +5,14 @@ import program from 'commander';
 import version from '../../package.json';
 import pageload from '..';
 
-let pathDir;
-let addr;
 program
-  .version(version)
-  .option('--output', 'whereToSafe')
-  .usage('[options] <pathForSave> <address>')
-  .arguments('<pathForSave> <address>')
-  .action((pathForSave, address) => {
-    pathDir = pathForSave;
-    addr = address;
+  .version(version, '-v, --version')
+  .option('--output [pathForSave]', 'whereToSafe')
+  .usage('[options] <address>')
+  .arguments('<address>')
+  .action((address) => {
+    pageload(address, program.output || process.cwd())
+      .then(name => console.log(`Save in ${name}`))
+      .catch(err => console.log(err));
   })
   .parse(process.argv);
-pageload(addr, pathDir)
-  .then(name => console.log(`Save in ${name}`))
-  .catch(err => console.log(err));
