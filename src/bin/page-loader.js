@@ -2,7 +2,7 @@
 
 import program from 'commander';
 
-import version from '../../package.json';
+import { version } from '../../package.json';
 import pageload from '..';
 
 program
