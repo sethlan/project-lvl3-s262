@@ -36,7 +36,8 @@
   "dependencies": {
     "commander": "*",
     "axios": "*",
-    "mz": "*"
+    "mz": "*",
+    "cheerio": "*"
   },
   "repository": {
     "type": "git",
