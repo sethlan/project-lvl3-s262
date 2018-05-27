@@ -7,11 +7,11 @@ import pageload from '..';
 
 program
   .version(version, '-v, --version')
-  .option('--output [pathForSave]', 'whereToSafe')
+  .option('--output [pathForSave]', 'whereToSafe', process.cwd())
   .usage('[options] <address>')
   .arguments('<address>')
   .action((address) => {
-    pageload(address, program.output || process.cwd())
+    pageload(address, program.output)
       .then(names => names.map(name => console.log(`Save in ${name}`)))
       .catch(err => console.log(err));
   })

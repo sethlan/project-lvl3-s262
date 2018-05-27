@@ -2,8 +2,10 @@ import os from 'os';
 import nock from 'nock';
 import fs from 'mz/fs';
 import path from 'path';
+import debug from 'debug';
 import pageload from '../src/';
 
+debug.enable('page-loader');
 const dataForSave = 'test';
 const host = 'http://www.example.com';
 const pathName = '/';
@@ -11,8 +13,8 @@ const folderForTest = path.join(os.tmpdir(), 'pageloader');
 test('test for hyper text only', async () => {
   nock(host).get(pathName).reply(200, dataForSave);
   const folder = await fs.mkdtemp(folderForTest);
-  const pathToFile = await pageload(host + pathName, folder);
-  const dataFromFunc = await fs.readFile(pathToFile[0], 'utf8');
+  const result = await pageload(host + pathName, folder);
+  const dataFromFunc = await fs.readFile(result[0], 'utf8');
   return expect(dataFromFunc).toBe(dataForSave);
 });
 
