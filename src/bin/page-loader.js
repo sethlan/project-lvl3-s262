@@ -12,7 +12,7 @@ program
   .arguments('<address>')
   .action((address) => {
     pageload(address, program.output || process.cwd())
-      .then(name => console.log(`Save in ${name}`))
+      .then(names => names.map(name => console.log(`Save in ${name}`)))
       .catch(err => console.log(err));
   })
   .parse(process.argv);
