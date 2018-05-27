@@ -37,7 +37,8 @@
     "commander": "*",
     "axios": "*",
     "mz": "*",
-    "cheerio": "*"
+    "cheerio": "*",
+    "debug": "*"
   },
   "repository": {
     "type": "git",
