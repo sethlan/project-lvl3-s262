@@ -38,7 +38,8 @@
     "axios": "*",
     "mz": "*",
     "cheerio": "*",
-    "debug": "*"
+    "debug": "*",
+    "validator": "*"
   },
   "repository": {
     "type": "git",
