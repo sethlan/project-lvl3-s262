@@ -17,6 +17,9 @@ const namingFile = (addr) => {
 };
 
 export default (addr, pathDir) => {
+  if (!addr || !pathDir) {
+    throw new Error(`Don't have one of arguments: URL = ${addr} Path = ${pathDir}`);
+  }
   log('start program');
   axios.defaults.adapter = httpAdapter;
   const filename = namingFile(addr);
@@ -25,7 +28,12 @@ export default (addr, pathDir) => {
   const resources = [];
   let jquery;
   return axios.get(addr)
-    .then(({ data }) => {
+    .then(({ data, status, ...rest }) => {
+      if (status !== 200) {
+        log('bad statusCode', status);
+        log('rest of request', rest);
+        throw new Error(`statuscode ${status}`);
+      }
       log('downlad html');
       jquery = cheerio.load(data);
       return Promise.all(['img', 'link', 'script'].map(e => jquery(e).each((i, element) => {
@@ -40,6 +48,9 @@ export default (addr, pathDir) => {
           };
           log('make config');
           axios(config).then((img) => {
+            if (img.statusCode !== 200) {
+              throw new Error('can\'t download resources');
+            }
             const nameForRes = path.resolve(dirForRes, name);
             resources.push(nameForRes);
             if (!fs.existsSync(dirForRes)) {

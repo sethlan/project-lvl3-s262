@@ -9,13 +9,31 @@ debug.enable('page-loader');
 const dataForSave = 'test';
 const host = 'http://www.example.com';
 const pathName = '/';
+const textError = 'something awful happened';
+const err = new Error(textError);
+const errStatus = new Error('Request failed with status code 400');
 const folderForTest = path.join(os.tmpdir(), 'pageloader');
+
 test('test for hyper text only', async () => {
   nock(host).get(pathName).reply(200, dataForSave);
   const folder = await fs.mkdtemp(folderForTest);
   const result = await pageload(host + pathName, folder);
   const dataFromFunc = await fs.readFile(result[0], 'utf8');
   return expect(dataFromFunc).toBe(dataForSave);
+});
+
+test('test error handle', async () => {
+  nock(host).get(pathName).replyWithError(textError);
+  const folder = await fs.mkdtemp(folderForTest);
+  return pageload(host + pathName, folder)
+    .catch(e => expect(e).toEqual(err));
+});
+
+test('test error statuscode', async () => {
+  nock(host).get(pathName).reply(400);
+  const folder = await fs.mkdtemp(folderForTest);
+  return pageload(host + pathName, folder)
+    .catch(e => expect(e).toEqual(errStatus));
 });
 
 // test('test for hyper text and image', async () => {
