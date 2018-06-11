@@ -43,12 +43,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sethlan/project-lvl3-s250.git"
+    "url": "git+https://github.com/sethlan/project-lvl3-s262.git"
   },
   "author": "sethlans",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/sethlan/project-lvl3-s250/issues"
+    "url": "https://github.com/sethlan/project-lvl3-s262/issues"
   },
-  "homepage": "https://github.com/sethlan/project-lvl3-s250#readme"
+  "homepage": "https://github.com/sethlan/project-lvl3-s262#readme"
 }
