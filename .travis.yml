@@ -16,5 +16,5 @@ script:
   - make testCoverage
 
 after_script:
-  - ./cc-test-reporter after-build -r 625009ae3209eeb8c3f1dfd997ff7bfef0e767e7c153c6130f4913cdebd2366d after-build < coverage/lcov.info
+  - ./cc-test-reporter after-build -r d672c31de48a2c53fbc2e93df4779f9abe959b456fdf3073802db621ecc60042 after-build < coverage/lcov.info
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
