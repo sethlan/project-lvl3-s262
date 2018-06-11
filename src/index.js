@@ -17,10 +17,10 @@ const namingFile = (addr) => {
 };
 
 export default (addr, pathDir) => {
+  log('start program, arguments: %o %o', addr, pathDir);
   if (!addr || !pathDir) {
     throw new Error(`Don't have one of arguments: URL = ${addr} Path = ${pathDir}`);
   }
-  log('start program');
   axios.defaults.adapter = httpAdapter;
   const filename = namingFile(addr);
   const pathForSave = path.resolve(pathDir, filename);
@@ -28,10 +28,9 @@ export default (addr, pathDir) => {
   const resources = [];
   let jquery;
   return axios.get(addr)
-    .then(({ data, status, ...rest }) => {
+    .then(({ data, status }) => {
       if (status !== 200) {
         log('bad statusCode', status);
-        log('rest of request', rest);
         throw new Error(`statuscode ${status}`);
       }
       log('downlad html');
