@@ -3,7 +3,7 @@ import url from 'url';
 import path from 'path';
 import cheerio from 'cheerio';
 import debug from 'debug';
-import axios from '../src/lib/axios';
+import axios from './lib/axios';
 
 const log = debug('page-loader');
 
@@ -62,7 +62,7 @@ export default (addr, pathDir) => {
         resources.forEach((resource) => {
           log(`start download res${resource}`);
           const name = namingRes(resource);
-          promises.push(axios({ url: url.resolve(addr, resource), responseType: 'stream' }).then((img) => {
+          promises.push(axios({ method: 'get', url: url.resolve(addr, resource), responseType: 'stream' }).then((img) => {
             // if (img.statusCode !== 200) {
             //   log('can\'t download res', img);
             //   throw new Error('can\'t download resources');
