@@ -24,23 +24,27 @@ test('test for hyper text only', async () => {
 test('test for hyper text and image', async () => {
   const html = await fs.readFile('__tests__/__fixtures__/test.html');
   const img1 = await fs.readFile('__tests__/__fixtures__/test.png', 'binary');
-  nock(host).get(pathName).reply(200, html);
-  nock(host).get('/test.png').reply(200, img1);
+  nock(host)
+    .get(pathName)
+    .reply(200, html)
+    .get('/test.png')
+    .reply(200, () => fs.createReadStream('__tests__/__fixtures__/test.png'));
   const folder = await fs.mkdtemp(folderForTest);
   const pathsToFiles = await loadpage(`${host}${pathName}`, folder);
   const jquery = cheerio.load(html);
   jquery('img').attr('src', path.resolve(folder, 'www-example-com_files/test.png'));
   const newHtml = jquery.html();
   const resHtml = await fs.readFile(pathsToFiles[0], 'utf8');
-  // const resImg1 = await fs.readFile(pathsToFiles[1], 'binary');
-  return expect(resHtml).toBe(newHtml);
-  // .expect(resImg1).toBe(img1);
+  const resImg1 = await fs.readFile(pathsToFiles[1], 'binary');
+  expect(resHtml).toBe(newHtml);
+  expect(resImg1).toBe(img1);
 });
 
 test('test error handle', async () => {
   nock(host).get(pathName).replyWithError(textError);
   const folder = await fs.mkdtemp(folderForTest);
   return expect(loadpage(`${host}${pathName}`, folder))
+    .rejects
     .toThrowErrorMatchingSnapshot();
 });
 
@@ -48,5 +52,6 @@ test('test error statuscode 400', async () => {
   nock(host).get(pathName).reply(400);
   const folder = await fs.mkdtemp(folderForTest);
   return expect(loadpage(`${host}${pathName}`, folder))
+    .rejects
     .toThrowErrorMatchingSnapshot();
 });
