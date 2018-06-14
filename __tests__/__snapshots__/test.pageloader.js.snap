@@ -2,4 +2,6 @@
 
 exports[`test error handle 1`] = `"something awful happened"`;
 
+exports[`test error statuscode 201 1`] = `"statuscode 201"`;
+
 exports[`test error statuscode 400 1`] = `"Request failed with status code 400"`;

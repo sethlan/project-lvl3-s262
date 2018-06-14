@@ -12,6 +12,7 @@ const namingFile = (addr) => {
   const normHost = hostname.replace(/\./g, '-');
   const normPath = pathname.replace(/\//g, (str, offset, s) =>
     (offset === s.length - 1 ? '' : '-'));
+  log('rewrite %o on %o, %o on %o', hostname, normHost, pathname, normPath);
   return `${normHost}${normPath}`;
 };
 

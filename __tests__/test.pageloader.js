@@ -21,23 +21,37 @@ test('test for hyper text only', async () => {
   return expect(dataFromFunc).toBe(dataForSave);
 });
 
-test('test for hyper text and image', async () => {
+test('test for hyper text and image and link', async () => {
   const html = await fs.readFile('__tests__/__fixtures__/test.html');
-  const img1 = await fs.readFile('__tests__/__fixtures__/test.png', 'binary');
+  const res1 = await fs.readFile('__tests__/__fixtures__/screen.css', 'binary');
+  const res2 = await fs.readFile('__tests__/__fixtures__/test.png', 'binary');
   nock(host)
     .get(pathName)
     .reply(200, html)
     .get('/test.png')
-    .reply(200, () => fs.createReadStream('__tests__/__fixtures__/test.png'));
+    .reply(200, () => fs.createReadStream('__tests__/__fixtures__/test.png'))
+    .get('/screen.css')
+    .reply(200, () => fs.createReadStream('__tests__/__fixtures__/screen.css'));
   const folder = await fs.mkdtemp(folderForTest);
   const pathsToFiles = await loadpage(`${host}${pathName}`, folder);
   const jquery = cheerio.load(html);
   jquery('img').attr('src', path.resolve(folder, 'www-example-com_files/test.png'));
+  jquery('link').attr('href', path.resolve(folder, 'www-example-com_files/screen.css'));
   const newHtml = jquery.html();
   const resHtml = await fs.readFile(pathsToFiles[0], 'utf8');
-  const resImg1 = await fs.readFile(pathsToFiles[1], 'binary');
+  const downRes1 = await fs.readFile(pathsToFiles[1], 'binary');
+  const downRes2 = await fs.readFile(pathsToFiles[2], 'binary');
   expect(resHtml).toBe(newHtml);
-  expect(resImg1).toBe(img1);
+  expect(downRes1).toBe(res1);
+  expect(downRes2).toBe(res2);
+});
+
+test('test error not have args', () => {
+  try {
+    loadpage(`${host}`);
+  } catch (e) {
+    expect(e).toEqual(new Error(`Don't have one of arguments: URL = ${host} Path = ${undefined}`));
+  }
 });
 
 test('test error handle', async () => {
@@ -50,6 +64,14 @@ test('test error handle', async () => {
 
 test('test error statuscode 400', async () => {
   nock(host).get(pathName).reply(400);
+  const folder = await fs.mkdtemp(folderForTest);
+  return expect(loadpage(`${host}${pathName}`, folder))
+    .rejects
+    .toThrowErrorMatchingSnapshot();
+});
+
+test('test error statuscode 201', async () => {
+  nock(host).get(pathName).reply(201);
   const folder = await fs.mkdtemp(folderForTest);
   return expect(loadpage(`${host}${pathName}`, folder))
     .rejects
