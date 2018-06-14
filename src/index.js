@@ -28,7 +28,13 @@ const changeHtmlAndDownloadLocalRes = (html, pathToDir) => new Promise((resolve)
       pathToRes.push(attr);
       const name = path.resolve(pathToDir, namingRes(attr));
       log('change attr %o on %o', attr, name);
-      jquery(element).attr('src', name);
+      if (jquery(element).attr('src')) {
+        log('attr src');
+        jquery(element).attr('src', name);
+      } else {
+        log('attr href');
+        jquery(element).attr('href', name);
+      }
     }
   });
   resolve([jquery.html(), ...pathToRes]);
