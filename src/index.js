@@ -1,10 +1,9 @@
-import axios from 'axios';
 import fs from 'mz/fs';
 import url from 'url';
 import path from 'path';
 import cheerio from 'cheerio';
-import httpAdapter from 'axios/lib/adapters/http';
 import debug from 'debug';
+import axios from '../src/lib/axios';
 
 const log = debug('page-loader');
 
@@ -18,62 +17,68 @@ const namingFile = (addr) => {
 
 const namingRes = attr => attr.replace(/\//g, (str, offset, s) => (offset === (s.length - 1 || 0) ? '' : '-'));
 
-const changeHtmlAndDownloadLocalRes = (html) => {
+const changeHtmlAndDownloadLocalRes = (html, pathToDir) => new Promise((resolve) => {
   const jquery = cheerio.load(html);
   const pathToRes = [];
-  jquery('img', 'link', 'script').each((i, element) => {
-    const attr = element.attr('src', 'href');
-    if (!path.parse(attr).hostname) {
+  jquery('img, link, script').each((i, element) => {
+    log('find res', element.tagName);
+    const attr = jquery(element).attr('src') || jquery(element).attr('href');
+    if (attr && !path.parse(attr).hostname) {
       log('add path for download', attr);
       pathToRes.push(attr);
-      const name = namingRes(attr);
+      const name = path.resolve(pathToDir, namingRes(attr));
       log('change attr %o on %o', attr, name);
-      element.attr('src', 'href', name);
+      jquery(element).attr('src', name);
     }
   });
-  return [jquery.html(), ...pathToRes];
-};
+  resolve([jquery.html(), ...pathToRes]);
+});
 
 export default (addr, pathDir) => {
   log('start program, arguments: %o %o', addr, pathDir);
   if (!addr || !pathDir) {
+    log(`Don't have one of arguments: URL = ${addr} Path = ${pathDir}`);
     throw new Error(`Don't have one of arguments: URL = ${addr} Path = ${pathDir}`);
   }
-  axios.defaults.adapter = httpAdapter;
   const filename = namingFile(addr);
   const pathForSave = path.resolve(pathDir, filename);
   const dirForRes = path.resolve(pathDir, `${filename}_files`);
   const answerForEnd = [];
-  return axios.get(addr)
+  return fs.mkdir(dirForRes)
+    .then(() => axios.get(addr))
     .then(({ data, status }) => {
       if (status !== 200) {
         log('bad statusCode', status);
         throw new Error(`statuscode ${status}`);
       }
-      log('downlad html');
-      return changeHtmlAndDownloadLocalRes(data);
+      log('download html');
+      return changeHtmlAndDownloadLocalRes(data, dirForRes);
     }).then(([html, ...resources]) => {
-      log('write html');
+      log('make array of promises');
       const promises = [];
       answerForEnd.push(`${pathForSave}.html`);
       promises.push(fs.writeFile(answerForEnd[0], html));
-      resources.forEach((resource) => {
-        const name = namingRes(resource);
-        promises.push(axios({ url: url.resolve(addr, resource), responseType: 'stream' }).then((img) => {
-          if (img.statusCode !== 200) {
-            throw new Error('can\'t download resources');
-          }
-          const nameForRes = path.resolve(dirForRes, name);
-          answerForEnd.push(nameForRes);
-          if (!fs.existsSync(dirForRes)) {
-            log('make dir for resource', dirForRes);
-            fs.mkdir(dirForRes);
-          }
-          fs.writeFile(nameForRes);
-          img.data.pipe(fs.createWriteStream(nameForRes));
-          log('save img', nameForRes);
-        }));
-      });
+      if (resources.length !== 0) {
+        resources.forEach((resource) => {
+          log(`start download res${resource}`);
+          const name = namingRes(resource);
+          promises.push(axios({ url: url.resolve(addr, resource), responseType: 'stream' }).then((img) => {
+            // if (img.statusCode !== 200) {
+            //   log('can\'t download res', img);
+            //   throw new Error('can\'t download resources');
+            // }
+            const nameForRes = path.resolve(dirForRes, name);
+            answerForEnd.push(nameForRes);
+            // fs.writeFile(nameForRes);
+            img.data.pipe(fs.createWriteStream(nameForRes));
+            log('save img', nameForRes);
+          }));
+        });
+      }
       return Promise.all(promises);
-    }).then(() => answerForEnd);
+    })
+    .then(() => {
+      log('end program', answerForEnd);
+      return answerForEnd.length === 1 ? answerForEnd[0] : answerForEnd;
+    });
 };
