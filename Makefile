@@ -3,7 +3,7 @@ install:
 build:
 	npm run build
 start:
-	npm run babel-node -- src/bin/page-loader .js
+	npm run babel-node -- src/bin/page-loader.js
 publish:
 	npm publish
 lint:
