@@ -1,3 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`test error statuscode: Error: Request failed with status code 400 1`] = `"received is not a function"`;
+exports[`test error handle 1`] = `"received is not a function"`;
+
+exports[`test error statuscode 400 1`] = `"received is not a function"`;
