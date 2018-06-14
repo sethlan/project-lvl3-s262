@@ -4,7 +4,7 @@ import program from 'commander';
 import isURL from 'validator/lib/isURL';
 
 import { version } from '../../package.json';
-import pageload from '..';
+import loadpage from '..';
 
 program
   .version(version, '-v, --version')
@@ -16,8 +16,9 @@ program
       console.error('Not correct address');
       process.exit(1);
     }
-    pageload(address, program.output)
-      .then(names => names.map(name => console.log(`Save in ${name}`)))
+    loadpage(address, program.output)
+      .then(names => (Array.isArray(names) ?
+        names.map(name => console.log(`Save in ${name}`)) : console.log(`Save in ${names}`)))
       .catch((err) => {
         if (err.code === 'EISDIR') {
           console.error('can\'t write file');
