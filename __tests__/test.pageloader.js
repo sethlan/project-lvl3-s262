@@ -62,14 +62,6 @@ test('test error handle', async () => {
     .toThrowErrorMatchingSnapshot();
 });
 
-test('test error statuscode 400', async () => {
-  nock(host).get(pathName).reply(400);
-  const folder = await fs.mkdtemp(folderForTest);
-  return expect(loadpage(`${host}${pathName}`, folder))
-    .rejects
-    .toThrowErrorMatchingSnapshot();
-});
-
 test('test error statuscode 201', async () => {
   nock(host).get(pathName).reply(201);
   const folder = await fs.mkdtemp(folderForTest);
