@@ -3,6 +3,7 @@ import url from 'url';
 import path from 'path';
 import cheerio from 'cheerio';
 import debug from 'debug';
+// import listr from 'listr';
 import axios from './lib/axios';
 
 const log = debug('page-loader');
@@ -16,42 +17,40 @@ const renameFile = (addr) => {
   return `${normHost}${normPath}`;
 };
 
-const namingRes = attr => attr.replace(/\//g, (str, offset, s) => (offset === (s.length - 1 || 0) ? '' : '-'));
+const renameRes = attr => attr.replace(/\//g, (str, offset, s) => (offset === (s.length - 1 || 0) ? '' : '-'));
 
 const changeHtmlAndDownloadLocalRes = (html, pathToDir) => {
   const dom = cheerio.load(html);
   const pathToRes = [];
   dom('img, link, script').each((i, element) => {
-    log('find res', element.tagName);
-    const attr = dom(element).attr('src') || dom(element).attr('href');
-    if (attr && !path.parse(attr).hostname) {
-      log('add path for download', attr);
-      pathToRes.push(attr);
-      const name = path.resolve(pathToDir, namingRes(attr));
+    const attr = {
+      src: dom(element).attr('src'),
+      href: dom(element).attr('href'),
+    };
+    const source = dom(element).attr('src') ? 'src' : 'href';
+    if (attr[source] && !path.parse(attr[source]).hostname) {
+      log('find local res', element.tagName, attr[source]);
+      pathToRes.push(attr[source]);
+      const name = path.resolve(pathToDir, renameRes(attr[source]));
       log('change attr %o on %o', attr, name);
-      if (dom(element).attr('src')) {
-        log('attr src', dom(element).attr('src'));
-        dom(element).attr('src', name);
-      } else {
-        log('attr href');
-        dom(element).attr('href', name);
-      }
+      log(`attr ${source}`, attr[source]);
+      dom(element).attr(source, name);
     }
   });
   return [dom.html(), ...pathToRes];
 };
 
-export default (addr, pathDir) => {
+export default (addr, pathDir) => new Promise((resolve, reject) => {
   log('start program, arguments: %o %o', addr, pathDir);
-  if (!addr || !pathDir) {
+  if (!addr || !pathDir || pathDir.length === 0 || addr.length === 0) {
     log(`Don't have one of arguments: URL = ${addr} Path = ${pathDir}`);
-    throw new Error(`Don't have one of arguments: URL = ${addr} Path = ${pathDir}`);
+    return reject(new Error(`Don't have one of arguments: URL = ${addr} Path = ${pathDir}`));
   }
   const filename = renameFile(addr);
   const pathForSave = path.resolve(pathDir, filename);
   const dirForRes = path.resolve(pathDir, `${filename}_files`);
   const pathes = {};
-  return axios.get(addr)
+  return resolve(axios.get(addr)
     .then(({ data, status }) => {
       if (status !== 200) {
         log('bad statusCode', status);
@@ -60,7 +59,7 @@ export default (addr, pathDir) => {
       log('download html');
       return changeHtmlAndDownloadLocalRes(data, dirForRes);
     }).then(([html, ...resources]) => {
-      if (resources && resources.length > 0) {
+      if (resources.length > 0) {
         log('create a folder');
         return fs.mkdir(dirForRes).then(() => [html, ...resources]);
       }
@@ -72,7 +71,7 @@ export default (addr, pathDir) => {
       promises.push(fs.writeFile(pathes.html, html));
       resources.forEach((resource) => {
         log(`start download res${resource}`);
-        const name = namingRes(resource);
+        const name = renameRes(resource);
         promises.push(axios({
           method: 'get',
           url: url.resolve(addr, resource),
@@ -81,7 +80,7 @@ export default (addr, pathDir) => {
           const nameForRes = path.resolve(dirForRes, name);
           pathes[name] = nameForRes;
           res.data.pipe(fs.createWriteStream(nameForRes));
-          log('save img', nameForRes);
+          log('save resource', nameForRes);
         }));
       });
       return Promise.all(promises);
@@ -89,5 +88,5 @@ export default (addr, pathDir) => {
     .then(() => {
       log('end program', pathes);
       return pathes;
-    });
-};
+    }));
+});
