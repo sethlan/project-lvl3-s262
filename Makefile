@@ -12,3 +12,5 @@ test:
 	npm test
 testCoverage:
 	npm run coverage
+watch:
+	npm run watch
