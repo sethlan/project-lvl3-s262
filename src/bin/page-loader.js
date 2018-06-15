@@ -23,6 +23,12 @@ program
           console.error('can\'t write file');
         } else if (err.code === 'ENOTFOUND') {
           console.error('URL not found, please check address or connection');
+        } else if (err.code === 'EEXIST') {
+          console.error('File or folder already exist');
+        } else if (err.response.status >= 400 && err.response.status < 500) {
+          console.error('Http client error, probably bad adress');
+        } else if (err.response.status >= 500 && err.response.status < 600) {
+          console.error('Server error');
         } else {
           console.error(err);
         }
