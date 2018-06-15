@@ -34,10 +34,10 @@ test('test for hyper text and image and link', async () => {
     .reply(200, () => fs.createReadStream('__tests__/__fixtures__/screen.css'));
   const folder = await fs.mkdtemp(folderForTest);
   const { html, ...resources } = await loadpage(`${host}${pathName}`, folder);
-  const jquery = cheerio.load(htmlOrig);
-  jquery('img').attr('src', path.resolve(folder, 'www-example-com_files/test.png'));
-  jquery('link').attr('href', path.resolve(folder, 'www-example-com_files/screen.css'));
-  const newHtml = jquery.html();
+  const dom = cheerio.load(htmlOrig);
+  dom('img').attr('src', path.resolve(folder, 'www-example-com_files/test.png'));
+  dom('link').attr('href', path.resolve(folder, 'www-example-com_files/screen.css'));
+  const newHtml = dom.html();
   const resHtml = await fs.readFile(html, 'utf8');
   const downRes1 = await fs.readFile(resources['screen.css'], 'binary');
   const downRes2 = await fs.readFile(resources['test.png'], 'binary');
@@ -46,13 +46,8 @@ test('test for hyper text and image and link', async () => {
   expect(downRes2).toBe(res2);
 });
 
-test('test error not have args', () => {
-  try {
-    loadpage(`${host}`);
-  } catch (e) {
-    expect(e).toEqual(new Error(`Don't have one of arguments: URL = ${host} Path = ${undefined}`));
-  }
-});
+test('test error not have args', async () =>
+  expect(loadpage(`${host}`, '')).rejects.toThrowErrorMatchingSnapshot());
 
 test('test error handle', async () => {
   nock(host).get(pathName).replyWithError(textError);

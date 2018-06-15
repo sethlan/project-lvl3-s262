@@ -2,4 +2,6 @@
 
 exports[`test error handle 1`] = `"something awful happened"`;
 
+exports[`test error not have args 1`] = `"Don't have one of arguments: URL = http://www.example.com Path = "`;
+
 exports[`test error statuscode 201 1`] = `"statuscode 201"`;
