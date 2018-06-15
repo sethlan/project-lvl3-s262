@@ -1,4 +1,3 @@
-
 {
   "name": "pageloader-sethlans",
   "version": "0.2.2",
@@ -32,7 +31,6 @@
     "babel-eslint": "*",
     "jest": "*",
     "jest-cli": "*",
-    "listr": "*",
     "nock": "*"
   },
   "dependencies": {
@@ -41,6 +39,7 @@
     "mz": "*",
     "cheerio": "*",
     "debug": "*",
+    "listr": "*",
     "validator": "*"
   },
   "repository": {
