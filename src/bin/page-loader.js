@@ -17,8 +17,7 @@ program
       process.exit(1);
     }
     loadpage(address, program.output)
-      .then(names => (Array.isArray(names) ?
-        names.map(name => console.log(`Save in ${name}`)) : console.log(`Save in ${names}`)))
+      .then(names => names.keys.map(key => console.log(`Save in ${names[key]}`)))
       .catch((err) => {
         if (err.code === 'EISDIR') {
           console.error('can\'t write file');
