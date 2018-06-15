@@ -30,7 +30,7 @@ const changeHtmlAndDownloadLocalRes = (html, pathToDir) => {
       const name = path.resolve(pathToDir, namingRes(attr));
       log('change attr %o on %o', attr, name);
       if (dom(element).attr('src')) {
-        log('attr src');
+        log('attr src', dom(element).attr('src'));
         dom(element).attr('src', name);
       } else {
         log('attr href');
@@ -51,8 +51,7 @@ export default (addr, pathDir) => {
   const pathForSave = path.resolve(pathDir, filename);
   const dirForRes = path.resolve(pathDir, `${filename}_files`);
   const pathes = {};
-  return fs.mkdir(dirForRes)
-    .then(() => axios.get(addr))
+  return axios.get(addr)
     .then(({ data, status }) => {
       if (status !== 200) {
         log('bad statusCode', status);
@@ -60,6 +59,12 @@ export default (addr, pathDir) => {
       }
       log('download html');
       return changeHtmlAndDownloadLocalRes(data, dirForRes);
+    }).then(([html, ...resources]) => {
+      if (resources && resources.length > 0) {
+        log('create a folder');
+        return fs.mkdir(dirForRes).then(() => [html, ...resources]);
+      }
+      return [html, ...resources];
     }).then(([html, ...resources]) => {
       log('make array of promises');
       const promises = [];
