@@ -1,7 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`test error handle 1`] = `"something awful happened"`;
+exports[`test error EISDIR 1`] = `"Error: ENOENT: no such file or directory, open '/folderdnotexist/www-example-com.html'"`;
 
-exports[`test error not have args 1`] = `"Don't have one of arguments: URL = http://www.example.com Path = "`;
+exports[`test error ENOTFOUND 1`] = `"URL not found, please check address or connection"`;
 
-exports[`test error statuscode 201 1`] = `"statuscode 201"`;
+exports[`test error handle 1`] = `"Error: something awful happened"`;
+
+exports[`test error not correct url 1`] = `"Error: Not correct address"`;
+
+exports[`test error not have args 1`] = `
+"Error: Don't have one of arguments:
+URL = http://www.example.com Path = "
+`;
+
+exports[`test error statuscode 201 1`] = `"Error: statuscode 201"`;

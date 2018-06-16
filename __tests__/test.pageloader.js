@@ -49,6 +49,9 @@ test('test for hyper text and image and link', async () => {
 test('test error not have args', async () =>
   expect(loadpage(`${host}`, '')).rejects.toThrowErrorMatchingSnapshot());
 
+test('test error not correct url', async () =>
+  expect(loadpage('http://www', '/')).rejects.toThrowErrorMatchingSnapshot());
+
 test('test error handle', async () => {
   nock(host).get(pathName).replyWithError(textError);
   const folder = await fs.mkdtemp(folderForTest);
@@ -64,3 +67,32 @@ test('test error statuscode 201', async () => {
     .rejects
     .toThrowErrorMatchingSnapshot();
 });
+
+test('test error EISDIR', async () => {
+  nock(host).get(pathName).reply(200, dataForSave);
+  return expect(loadpage(`${host}${pathName}`, '/folderdnotexist'))
+    .rejects
+    .toThrowErrorMatchingSnapshot();
+});
+
+test('test error ENOTFOUND', async () => {
+  nock(host).get(pathName).replyWithError({
+    code: 'ENOTFOUND',
+  });
+  const folder = await fs.mkdtemp(folderForTest);
+  return expect(loadpage(`${host}${pathName}`, folder))
+    .rejects
+    .toThrowErrorMatchingSnapshot();
+});
+
+// test('test error EEXIST', async () => {
+//   nock(host).get(pathName).reply(200, dataForSave);
+//   const folder = await fs.mkdtemp(folderForTest);
+//   const { html } = await loadpage(`${host}${pathName}`, folder);
+//   const dataFromFunc = await fs.readFile(html, 'utf8');
+//   expect(dataFromFunc).toBe(dataForSave);
+//   nock(host).get(pathName).reply(200, dataForSave);
+//   return expect(loadpage(`${host}${pathName}`, folder))
+//     .rejects
+//     .toThrowErrorMatchingSnapshot();
+// });

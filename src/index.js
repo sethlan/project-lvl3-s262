@@ -3,7 +3,9 @@ import url from 'url';
 import path from 'path';
 import cheerio from 'cheerio';
 import debug from 'debug';
+import isURL from 'validator/lib/isURL';
 // import listr from 'listr';
+
 import axios from './lib/axios';
 
 const log = debug('page-loader');
@@ -32,7 +34,7 @@ const changeHtmlAndDownloadLocalRes = (html, pathToDir) => {
       log('find local res', element.tagName, attr[source]);
       pathToRes.push(attr[source]);
       const name = path.resolve(pathToDir, renameRes(attr[source]));
-      log('change attr %o on %o', attr, name);
+      log('change attr %o on %o', attr[source], name);
       log(`attr ${source}`, attr[source]);
       dom(element).attr(source, name);
     }
@@ -40,11 +42,15 @@ const changeHtmlAndDownloadLocalRes = (html, pathToDir) => {
   return [dom.html(), ...pathToRes];
 };
 
-export default (addr, pathDir) => new Promise((resolve, reject) => {
+const loadpage = (addr, pathDir) => new Promise((resolve, reject) => {
   log('start program, arguments: %o %o', addr, pathDir);
   if (!addr || !pathDir || pathDir.length === 0 || addr.length === 0) {
-    log(`Don't have one of arguments: URL = ${addr} Path = ${pathDir}`);
-    return reject(new Error(`Don't have one of arguments: URL = ${addr} Path = ${pathDir}`));
+    log(`Don't have one of arguments:\nURL = ${addr} Path = ${pathDir}`);
+    return reject(new Error(`Don't have one of arguments:\nURL = ${addr} Path = ${pathDir}`));
+  }
+  if (!isURL(addr)) {
+    log('Not correct address');
+    return reject(new Error('Not correct address'));
   }
   const filename = renameFile(addr);
   const pathForSave = path.resolve(pathDir, filename);
@@ -90,3 +96,20 @@ export default (addr, pathDir) => new Promise((resolve, reject) => {
       return pathes;
     }));
 });
+
+export default (...args) => loadpage(...args)
+  .catch((err) => {
+    if (err.code === 'EISDIR') {
+      throw new Error(('can\'t write file'));
+    } else if (err.code === 'ENOTFOUND') {
+      throw new Error(('URL not found, please check address or connection'));
+    } else if (err.code === 'EEXIST') {
+      throw new Error(('File or folder already exist'));
+    } else if (err.response && err.response.status >= 400 && err.response.status < 500) {
+      throw new Error(('Http client error, probably bad adress'));
+    } else if (err.response && err.response.status >= 500 && err.response.status < 600) {
+      throw new Error(('Server error'));
+    } else {
+      throw new Error((err));
+    }
+  });
