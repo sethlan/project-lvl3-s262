@@ -4,7 +4,7 @@ import path from 'path';
 import cheerio from 'cheerio';
 import debug from 'debug';
 import isURL from 'validator/lib/isURL';
-// import listr from 'listr';
+import Listr from 'listr';
 
 import axios from './lib/axios';
 
@@ -71,25 +71,27 @@ const loadpage = (addr, pathDir) => new Promise((resolve, reject) => {
       }
       return [html, ...resources];
     }).then(([html, ...resources]) => {
-      log('make array of promises');
-      const promises = [];
       pathes.html = `${pathForSave}.html`;
-      promises.push(fs.writeFile(pathes.html, html));
+      const list = [];
       resources.forEach((resource) => {
-        log(`start download res${resource}`);
+        log(`start download res ${resource}`);
         const name = renameRes(resource);
-        promises.push(axios({
-          method: 'get',
-          url: url.resolve(addr, resource),
-          responseType: 'stream',
-        }).then((res) => {
-          const nameForRes = path.resolve(dirForRes, name);
-          pathes[name] = nameForRes;
-          res.data.pipe(fs.createWriteStream(nameForRes));
-          log('save resource', nameForRes);
-        }));
+        list.push({
+          title: url.resolve(addr, resource),
+          task: () => axios({
+            method: 'get',
+            url: url.resolve(addr, resource),
+            responseType: 'stream',
+          }).then((res) => {
+            const nameForRes = path.resolve(dirForRes, name);
+            pathes[name] = nameForRes;
+            res.data.pipe(fs.createWriteStream(nameForRes));
+            log('save resource', nameForRes);
+          }),
+        });
       });
-      return Promise.all(promises);
+      const listr = new Listr(list);
+      return Promise.all([fs.writeFile(pathes.html, html), listr.run()]);
     })
     .then(() => {
       log('end program', pathes);
@@ -113,3 +115,60 @@ export default (...args) => loadpage(...args)
       throw new Error((err));
     }
   });
+
+//   const list = new Listr([{
+//     title: 'Launch program',
+//     task: ctx => ctx,
+//   },
+//   {
+//     title: `Request ${addr}`,
+//     task: ctx => axios.get(addr).then(({ data, status }) => {
+//       if (status !== 200) {
+//         log('bad statusCode', status);
+//         throw new Error(`statuscode ${status}`);
+//       }
+//       log('download html');
+//       ctx.first = changeHtmlAndDownloadLocalRes(data, dirForRes);
+//     }),
+//   },
+//   {
+//     title: 'Write html',
+//     task: (ctx) => {
+//       log('write html', ctx);
+//       ctx.pathes = {};
+//       ctx.pathes.html = `${pathForSave}.html`;
+//       fs.writeFile(ctx.pathes, ctx.first.html);
+//     },
+//   },
+//   {
+//     title: `Download and write resources in ${dirForRes}`,
+//  skip: ctx => (ctx.first.resources.length === 0 ? 'Do not find local resources' : 'do not skip'),
+//     task: (ctx) => {
+//       const promises = [];
+//       log('create a folder for resources');
+//       fs.mkdir(dirForRes);
+//       promises.push(dirForRes);
+//       ctx.first.resources.forEach((resource) => {
+//         log(`start download res${resource}`);
+//         const name = renameRes(resource);
+//         promises.push(axios({
+//           method: 'get',
+//           url: url.resolve(addr, resource),
+//           responseType: 'stream',
+//         }).then((res) => {
+//           const nameForRes = path.resolve(dirForRes, name);
+//           ctx.pathes[name] = nameForRes;
+//           res.data.pipe(fs.createWriteStream(nameForRes));
+//           log('save resource', nameForRes);
+//         }));
+//       });
+//       return Promise.all(promises);
+//     },
+//   },
+//   {
+//     title: 'end program',
+//     task: ctx => log('end program', ctx.pathes),
+//   },
+//   ]);
+//   return resolve(list.run());
+// });
