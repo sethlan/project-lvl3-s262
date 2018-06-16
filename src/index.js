@@ -10,6 +10,14 @@ import axios from './lib/axios';
 
 const log = debug('page-loader');
 
+const attrByTags = {
+  img: 'src',
+  script: 'src',
+  link: 'href',
+};
+
+const tags = ['img', 'script', 'link'];
+
 const renameFile = (addr) => {
   const { hostname, pathname } = url.parse(addr);
   const normHost = hostname.replace(/\./g, '-');
@@ -24,21 +32,16 @@ const renameRes = attr => attr.replace(/\//g, (str, offset, s) => (offset === (s
 const changeHtmlAndDownloadLocalRes = (html, pathToDir) => {
   const dom = cheerio.load(html);
   const pathToRes = [];
-  dom('img, link, script').each((i, element) => {
-    const attr = {
-      src: dom(element).attr('src'),
-      href: dom(element).attr('href'),
-    };
-    const source = dom(element).attr('src') ? 'src' : 'href';
-    if (attr[source] && !path.parse(attr[source]).hostname) {
-      log('find local res', element.tagName, attr[source]);
-      pathToRes.push(attr[source]);
-      const name = path.resolve(pathToDir, renameRes(attr[source]));
-      log('change attr %o on %o', attr[source], name);
-      log(`attr ${source}`, attr[source]);
-      dom(element).attr(source, name);
+  tags.forEach(tag => dom(tag).each((i, element) => {
+    const attr = dom(element).attr(attrByTags[tag]);
+    if (attr && !path.parse(attr).hostname) {
+      log('find local res', element.tagName, attr);
+      pathToRes.push(attr);
+      const name = path.resolve(pathToDir, renameRes(attr));
+      log('change attr %o on %o', attr, name);
+      dom(element).attr(attrByTags[tag], name);
     }
-  });
+  }));
   return [dom.html(), ...pathToRes];
 };
 
@@ -71,12 +74,15 @@ const loadpage = (addr, pathDir) => new Promise((resolve, reject) => {
       }
       return [html, ...resources];
     }).then(([html, ...resources]) => {
+      log('write html');
       pathes.html = `${pathForSave}.html`;
-      const list = [];
-      resources.forEach((resource) => {
+      return fs.writeFile(pathes.html, html).then(() => resources);
+    })
+    .then((resources) => {
+      const listr = new Listr(resources.map((resource) => {
         log(`start download res ${resource}`);
         const name = renameRes(resource);
-        list.push({
+        return {
           title: url.resolve(addr, resource),
           task: () => axios({
             method: 'get',
@@ -88,10 +94,9 @@ const loadpage = (addr, pathDir) => new Promise((resolve, reject) => {
             res.data.pipe(fs.createWriteStream(nameForRes));
             log('save resource', nameForRes);
           }),
-        });
-      });
-      const listr = new Listr(list);
-      return Promise.all([fs.writeFile(pathes.html, html), listr.run()]);
+        };
+      }));
+      return listr.run();
     })
     .then(() => {
       log('end program', pathes);
